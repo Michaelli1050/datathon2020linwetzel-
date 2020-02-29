@@ -1,8 +1,33 @@
 import json 
 
-
-class dataAnalysis:
-    def __init__(self,films):
+def mergeSort(films):
+        if (len(films) > 1):
+            mid = len(films)//2
+            left = films[:mid]
+            right = films[mid:]
+            mergeSort(left)
+            mergeSort(right)
+            x = 0
+            y = 0
+            k = 0
+            while x < len(left) and y < len(right):
+                if left[x]['score'] < right[y]['score']:
+                    films[k] = left[x]
+                    x += 1 
+                else:
+                    films[k] = right[y]
+                    y += 1 
+                k += 1 
+            while x < len(left):
+                films[k] = left[x]
+                x += 1 
+                k += 1
+            while y < len(right):
+                films[k] = right[y]
+                y += 1 
+                k += 1 
+class analysis:
+    def __init__(self,object,films):
         self.id= object["show_id"]
         self.type = object["type"]
         self.title = object["title"]
@@ -14,39 +39,56 @@ class dataAnalysis:
         self.listing = object["listed_in"]
         self.description = object["description"]
         self.rating = object["rating"]
-        self.films = objects
-    def findNearest(data):
+        self.films = films
+    def findNearest(self):
         recommended = []
         index = 0
-        for film in films:
-            score = 0
-            score = calculateGenre(listing, film['listed_in']) + calculateCast(cast, film['cast']) + calculateCountry(country, film['country'])
-            score = score + calculateDirector(director, film['director']) + calculateYear(release_year, film['releaseyear'])
-            score = score + calculateRating(rating, film['rating'])
-            if (score > 50):
-                recommended[index] = film
-                index = index + 1 
-        return recommended 
+        scores = {}
+        for film in self.films:
+            if (film['title'] != self.title):
+                score = 0
+                if (film['type'].lower().strip() == 'TV Show'.lower().strip()):
+                    score = score + 5
+                score = score + calculateGenre(self.listing, film['listed_in']) 
+                score = score + calculateCast(self.cast, film['cast']) 
+                score = score + calculateCountry(self.country, film['country'])
+                score = score + calculateDirector(self.director, film['director']) 
+                score = score + calculateYear(self.release_year, film['release_year'])
+                score = score + calculateRating(self.rating, film['rating'])
+                film['score'] = score 
+                if (score > 55):
+                    recommended.append(film)
+                    index = index + 1 
+                    scores[film['title']] = score
+        mergeSort(recommended)
+            #if (film['title'] == self.title):
+                #print (film['type'])
+                #print ("Cast score " + str(calculateCast(self.cast, film['cast'])))
+                #print ("Genre score " + str(calculateGenre(self.listing, film['listed_in'])))
+                #print ("Director score " + str(calculateDirector(self.director, film['director'])))
+                #print ("Year score " + str(calculateYear(self.release_year, film['release_year'])))
+                #print ("Country Score " + str(calculateCountry(self.country, film['country'])))
+                #print ("Rating score" + str(calculateRating(self.rating, film['rating'])))
+        
+        return recommended
     
-    
+
 def calculateGenre(g1, g2):
     genre1 = g1.split(',')
     genre2 = g2.split(',')
-    x = len(g1)
+    x = len(genre1)
     y = 0
     weight = (25/x)
-    for a in genre1:
-        for b in genre2:
-            if a == b:
-                y = y+1
-                break
+    for b in genre2:
+        if b in genre1:
+            y = y+1
     return (y * weight)
 def calculateYear(g1,g2):
     x = abs(g1-g2)
     if (x == 0):
-        return 15
+        return 10
     if (x <= 30):
-        return 15-(0.5*x)
+        return 10-(0.33*x)
     else:
         return 0
 def calculateCountry(g1,g2):
@@ -61,58 +103,62 @@ def calculateRating(g1,g2):
     mature = ['TV-MA', 'R', "NC-17",]
     if (g1 in little_kids):
         if (g2 in little_kids):
-            return 15
+            return 20
         if (g2 in older_kids):
-            return 5
+            return 10
         if (g2 in teens or g2 in mature):
-            return 0
+            return -10
     if (g1 in older_kids):
         if (g2 in little_kids):
-            return 5
+            return 10
         if (g2 in older_kids):
-            return 15
+            return 20
         if (g2 in teens):
-            return 5
+            return 10
         if (g2 in mature):
-            return 0 
+            return -10
     if (g1 in teens):
         if (g2 in little_kids):
-            return 0
+            return -10
         if (g2 in older_kids):
-            return 5
+            return -5
         if (g2 in teens):
-            return 15
+            return 20
         if (g2 in mature):
-            return 5
+            return 10
     if (g1 in mature):
         if (g2 in little_kids):
-            return 0
+            return -10
         if (g2 in older_kids):
             return 0
         if (g2 in teens):
             return 5
         if (g2 in mature):
-            return 15
+            return 20
+    return 0
 def calculateCast(g1,g2):
     cast1 = g1.split(',')
     cast2 = g2.split(',')
-    x = len(g1)
+    
+    x = len(cast1)
+    if (x == 0):
+        return 10
     y = 0
     weight = (25/x)
-    for a in cast1:
-        for b in cast2:
-            if a == b:
-                y = y+1
-                break
+    for x in range(len(cast1)):
+        if cast1[x] in cast2:
+            y = y + 1
     return (y * weight)
 def calculateDirector(g1,g2):
     directors1 = g1.split(',')
     directors2 = g2.split(',')
     x = len(g1)
+    if (x == 0):
+        return 0
     y = 0
     weight = (5/x)
-    for a in cast1:
-        for b in cast2:
+    for a in directors1:
+        for b in directors2:
             if a == b:
                 y = y+1
                 break
