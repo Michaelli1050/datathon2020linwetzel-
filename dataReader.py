@@ -1,7 +1,4 @@
 import json
-import requests
-
-
 
 
 
@@ -29,8 +26,8 @@ def main():
 	while(x == -1):
 		s = input("Film name was entered incorrectly, or is not on Netflix, please enter another: ")
 		x = findFilm(films, s.lower())
-	print(x)
-	#y = findNearest(x)
+	print(x['listed_in'].split(','))
+	
 
 
 main()
